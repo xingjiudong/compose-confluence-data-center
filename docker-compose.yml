@@ -1,0 +1,37 @@
+version: '3'
+networks:
+   confluence-network:
+volumes:
+  confluence_home:
+  confluence_install_dir:
+services:
+  database:
+    image: postgres:9.6
+    container_name: database
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    networks:
+      confluence-network:
+  confluence:
+    image: atlassian/confluence-server:7.4.0
+    container_name: confluence
+    restart: unless-stopped
+    networks:
+      - confluence-network
+    volumes:
+      - confluence_home:/var/atlassian/application-data/confluence
+      - confluence_install_dir:/opt/atlassian/confluence
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - '8090:8090'
+    environment:
+      ATL_JDBC_URL: jdbc:postgresql://database:5432/postgres
+      ATL_JDBC_USER: postgres
+      ATL_JDBC_PASSWORD: password
+      ATL_DB_TYPE: postgresql
+    depends_on:
+      - database
